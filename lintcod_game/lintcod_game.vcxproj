@@ -154,10 +154,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\..\DEV\libtcod-1.15.0-x86_64-msvc\include\libtcod.hpp" />
+    <ClInclude Include="Actor.h" />
+    <ClInclude Include="Ai.h" />
+    <ClInclude Include="Attacker.h" />
+    <ClInclude Include="Destructible.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="Map.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="Ai.cpp" />
+    <ClCompile Include="Attacker.cpp" />
+    <ClCompile Include="Destructible.cpp" />
+    <ClCompile Include="Engine.cpp" />
     <ClCompile Include="lintcod_game.cpp" />
+    <ClCompile Include="Map.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -8,6 +8,16 @@
 
 #ifndef PCH_H
 #define PCH_H
+#pragma comment(lib, "libtcod.lib")
+
+#include "C:\libtcod-1.15.0-x86_64-msvc\include\libtcod.hpp"
+class Actor;
+#include "Destructible.h"
+#include "Attacker.h"
+#include "Ai.h"
+#include "Actor.h"
+#include "Map.h"
+#include "Engine.h"
 
 // TODO: add headers that you want to pre-compile here
 
