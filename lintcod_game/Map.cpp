@@ -11,7 +11,7 @@ Map::Map(int width, int height): width(width), height(height)
 	this->tiles = new Tile[width*height];
 	this->map = new TCODMap(width, height);
 	TCODBsp bsp(0, 0, width, height);
-	bsp.splitRecursive(nullptr, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
+	bsp.splitRecursive(nullptr, 16, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
 	BspListener listener(*this);
 	bsp.traverseInvertedLevelOrder(&listener, nullptr);
 }
@@ -45,6 +45,9 @@ bool Map::canWalk(int x, int y) const
 
 bool Map::isInFov(int x, int y) const
 {
+	if (x < 0 || x >= this->width || y < 0 || y >= this->height) {
+		return false;
+	}
 	if (this->map->isInFov(x, y)) {
 		this->tiles[x + y * width].explored = true;
 		return true;

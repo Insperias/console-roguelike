@@ -3,21 +3,24 @@
 Engine::Engine() : fovRadius(10), gameStatus(STARTUP)
 {
 	TCODConsole::initRoot(80, 50, "dungeon hero", false);
-	player = new Actor(40, 25, '@', "player", TCODColor::white);
-	actors.push(player);
-	map = new Map(80, 45);
+	this->player = new Actor(40, 25, '@', "player", TCODColor::white);
+	this->actors.push(player);
+	this->map = new Map(80, 43);
+	this->gui = new Gui();
 }
 
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), fovRadius(10),
 	screenWidth(screenWidth), screenHeight(screenHeight)
 {
 	TCODConsole::initRoot(screenWidth, screenHeight, "dungeoun hero", false);
-	player = new Actor(40, 25, '@', "player", TCODColor::white);
-	player->destructible = new PlayerDestructible(30, 3, "your cadaver");
-	player->attacker = new Attacker(5);
-	player->ai = new PlayerAi();
-	actors.push(player);
-	map = new Map(screenWidth, screenHeight - 5);
+	this->player = new Actor(40, 25, '@', "player", TCODColor::white);
+	this->player->destructible = new PlayerDestructible(30, 3, "your cadaver");
+	this->player->attacker = new Attacker(5);
+	this->player->ai = new PlayerAi();
+	this->actors.push(player);
+	this->map = new Map(screenWidth, screenHeight - 5);
+	this->gui = new Gui();
+	this->gui->message(TCODColor::orange, "Welcome stranger!\nPrepare to perish in the Cyber Heroes Kingdom.");
 	
 }
 
@@ -26,20 +29,22 @@ Engine::~Engine()
 {
 	actors.clearAndDelete();
 	delete map;
+	delete gui;
 }
 
 void Engine::sendToBack(Actor * actor)
 {
-	actors.remove(actor);
-	actors.insertBefore(actor, 0);
+	this->actors.remove(actor);
+	this->actors.insertBefore(actor, 0);
 }
 
 void Engine::update()
 {
 	if (gameStatus == STARTUP) map->computeFov();
 	gameStatus = IDLE;
-	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS, &lastKey, nullptr);
-	player->update();
+	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
+	this->player->update();
+
 
 	if (gameStatus == NEW_TURN) {
 		for (Actor **iterator = actors.begin(); iterator != actors.end();
@@ -67,7 +72,9 @@ void Engine::render()
 			actor->render();
 		}
 	}
-	//player->render();
-	TCODConsole::root->printf(1, screenHeight - 2, "HP : %d/%d",
-		(int)player->destructible->get_hp(), (int)player->destructible->get_maxHp());
+
+	player->render();
+	
+	//draw GUI
+	gui->render();
 }

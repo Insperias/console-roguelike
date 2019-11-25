@@ -61,7 +61,7 @@ bool PlayerAi::moveOrAttack(Actor * owner, int targetx, int targety)
 		Actor *actor = *iterator;
 		if (actor->destructible && actor->destructible->isDead()
 			&& actor->get_x_pos() == targetx && actor->get_y_pos() == targety) {
-			printf("There's a %s here\n", actor->get_name());
+			engine.gui->message(TCODColor::lightGrey,"There's a %s here\n", actor->get_name());
 		}
 	}
 	owner->set_x_pos(targetx);
