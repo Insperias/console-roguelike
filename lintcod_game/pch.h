@@ -11,11 +11,13 @@
 #pragma comment(lib, "libtcod.lib")
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "C:\libtcod-1.15.0-x86_64-msvc\include\libtcod.hpp"
+#include "libtcod.hpp"
 class Actor;
 #include "Destructible.h"
 #include "Attacker.h"
 #include "Ai.h"
+#include "Pickable.h"
+#include "Container.h"
 #include "Actor.h"
 #include "Map.h"
 #include "Gui.h"

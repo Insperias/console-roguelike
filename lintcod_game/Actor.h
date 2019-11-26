@@ -5,14 +5,16 @@ class Actor
 	int ch; //symb ascii code
 	TCODColor col; //color
 	const char *name;//name
-	 //can walk on this actor?
+	bool blocks;//can walk on this actor?
 	
 	
 public:
 	Attacker *attacker; // something deals damage
 	Destructible *destructible; //something can be damaged
 	Ai *ai; //something self-updating
-	bool blocks;
+	Pickable *pickable; //something can be picked and used
+	Container *container; //something that can contain actor
+	
 	Actor();
 	Actor(int, int, int, const char *name, const TCODColor&);
 	virtual ~Actor();
@@ -28,5 +30,7 @@ public:
 	TCODColor get_color();
 	void set_name(const char* name);
 	const char* get_name();
+	void set_block(bool block) { this->blocks = block; }
+	bool get_block() { return this->blocks; }
 };
 

@@ -13,6 +13,7 @@ struct Tile {
 
 class Map
 {
+private:
 	int width, height;
 public:
 	Map();
@@ -21,9 +22,10 @@ public:
 	bool isWall(int, int) const;
 	bool canWalk(int x, int y) const;
 	bool isInFov(int x, int y) const;
-	bool isExplored(int x, int y) const;
+	bool isExplored(int x, int y) const; 
 	void addMonster(int x, int y);
-	void computeFov();
+	void computeFov(); // player field of vision
+	void addItem(int x, int y);
 	void render() const;
 protected:
 	Tile *tiles; //tiles on map
@@ -35,7 +37,7 @@ protected:
 
 };
 
-class BspListener : public ITCODBspCallback {
+class BspListener : public ITCODBspCallback { //using bsp-algorithm for random map creating
 	Map &map; //map to dig
 	int roomNum; //room number
 	int lastx, lasty; //last room's center

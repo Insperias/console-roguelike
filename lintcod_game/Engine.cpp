@@ -17,6 +17,7 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), fovRadi
 	this->player->destructible = new PlayerDestructible(30, 3, "your cadaver");
 	this->player->attacker = new Attacker(5);
 	this->player->ai = new PlayerAi();
+	this->player->container = new Container(26);
 	this->actors.push(player);
 	this->map = new Map(screenWidth, screenHeight - 5);
 	this->gui = new Gui();

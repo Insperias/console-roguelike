@@ -9,9 +9,10 @@ public:
 	Destructible();
 	Destructible(float maxHp, float defense, const char *corpseName);
 	inline bool isDead() { return hp <= 0; }
-	~Destructible();
+	virtual ~Destructible();
 	float takeDamage(Actor* owner, float damage);
 	virtual void die(Actor *owner);
+	float heal(float amount);
 	void set_defense(float defense) { this->defense = defense; }
 	float get_defense() { return this->defense; }
 	void set_hp(float hp) { this->hp = hp; }

@@ -1,6 +1,7 @@
 #include "pch.h"
 
 static const int MAX_ROOM_MONSTERS = 3;
+static const int MAX_ROOM_ITEMS = 2;
 
 Map::Map()
 {
@@ -36,7 +37,7 @@ bool Map::canWalk(int x, int y) const
 	for (Actor **iterator = engine.actors.begin();
 		iterator != engine.actors.end(); iterator++) {
 		Actor *actor = *iterator;
-		if (actor->blocks && actor->get_x_pos() == x && actor->get_y_pos() == y) {
+		if (actor->get_block() && actor->get_x_pos() == x && actor->get_y_pos() == y) {
 			return false; //if actor blocked and cannot walk
 		}
 	}
@@ -82,6 +83,14 @@ void Map::addMonster(int x, int y)
 void Map::computeFov()
 {
 	this->map->computeFov(engine.player->get_x_pos(), engine.player->get_y_pos(), engine.fovRadius);
+}
+
+void Map::addItem(int x, int y)
+{
+	Actor *healthPotion = new Actor(x, y, '!', "health potion", TCODColor::cyan);
+	healthPotion->set_block(false);
+	healthPotion->pickable = new Healer(4);
+	engine.actors.push(healthPotion);
 }
 
 void Map::render() const
@@ -135,6 +144,8 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2)
 	}
 	else {
 		TCODRandom *rng = TCODRandom::getInstance();
+
+		//add mosnters
 		int nbMonsters = rng->getInt(1, MAX_ROOM_MONSTERS);
 		while (nbMonsters > 0) {
 			int x = rng->getInt(x1, x2);
@@ -144,7 +155,20 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2)
 			}
 			nbMonsters--;
 		}
+
+		//add items
+		int nbItems = rng->getInt(0, MAX_ROOM_ITEMS);
+		while (nbItems > 0) {
+			int x = rng->getInt(x1, x2);
+			int y = rng->getInt(y1, y2);
+			if (canWalk(x, y)) {
+				addItem(x, y);
+			}
+			nbItems--;
+		}
 	}
+
+	
 }
 
 

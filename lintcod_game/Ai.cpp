@@ -31,6 +31,9 @@ void PlayerAi::update(Actor * owner)
 	case TCODK_RIGHT:
 		dx = 1;
 		break;
+	case TCODK_CHAR :
+		handleActionKey(owner, engine.lastKey.c);
+		break;
 	default:break;
 	}
 
@@ -42,10 +45,51 @@ void PlayerAi::update(Actor * owner)
 	}
 }
 
+void PlayerAi::handleActionKey(Actor * owner, int ascii)
+{
+	switch (ascii) {
+	case 'g' : //pickup item
+	{
+		bool found = false;
+		for (Actor **iterator = engine.actors.begin();
+			iterator != engine.actors.end(); iterator++) {
+			Actor *actor = *iterator;
+			if (actor->pickable && actor->get_x_pos() == owner->get_x_pos() &&
+				actor->get_y_pos() == owner->get_y_pos()) {
+				if (actor->pickable->pick(actor, owner)) {
+					found = true;
+					engine.gui->message(TCODColor::lightGrey, "You pick up the %s.",
+						actor->get_name());
+					//engine.gameStatus = Engine::NEW_TURN;
+					break;
+				}
+				else if (!found) {
+					found = true;
+					engine.gui->message(TCODColor::red, "Your inventory is full.");
+				}
+			}
+		}
+		if (!found) {
+			engine.gui->message(TCODColor::lightGrey, "There's nothing here that you can pick up.");
+			engine.gameStatus = Engine::NEW_TURN;
+		}
+		break;
+	}
+	case 'i': //display inventory
+	{
+		Actor *actor = choseFromInventory(owner);
+		if (actor) {
+			actor->pickable->use(actor, owner);
+			engine.gameStatus = Engine::NEW_TURN;
+		}
+	}
+	}
+}
+
 bool PlayerAi::moveOrAttack(Actor * owner, int targetx, int targety)
 {
 	if (engine.map->isWall(targetx, targety)) return false;
-	//lool for living actors to attack
+	//look for living actors to attack
 	for (Actor **iterator = engine.actors.begin();
 		iterator != engine.actors.end(); iterator++) {
 		Actor *actor = *iterator;
@@ -55,18 +99,62 @@ bool PlayerAi::moveOrAttack(Actor * owner, int targetx, int targety)
 			return false;
 		}
 	}
-	//look for corpses
+	//look for corpses or items
 	for (Actor **iterator = engine.actors.begin();
 		iterator != engine.actors.end(); iterator++) {
 		Actor *actor = *iterator;
-		if (actor->destructible && actor->destructible->isDead()
+		bool corpseOrItem = (actor->destructible && actor->destructible->isDead())
+			|| actor->pickable;
+		if (corpseOrItem
 			&& actor->get_x_pos() == targetx && actor->get_y_pos() == targety) {
 			engine.gui->message(TCODColor::lightGrey,"There's a %s here\n", actor->get_name());
 		}
 	}
+
+	
 	owner->set_x_pos(targetx);
 	owner->set_y_pos(targety);
 	return true;
+}
+
+Actor * PlayerAi::choseFromInventory(Actor * owner)
+{
+	static const int INVENTORY_WIDTH = 50;
+	static const int INVENTORY_HEIGHT = 28;
+	static TCODConsole con(INVENTORY_WIDTH, INVENTORY_HEIGHT);
+
+	//didplay the inventory frame
+	con.setDefaultForeground(TCODColor(200, 180, 50));
+	con.printFrame(0, 0, INVENTORY_WIDTH, INVENTORY_HEIGHT, true,
+		TCOD_BKGND_DEFAULT, "inventory");
+
+	//display the items with their kb shortcut
+	con.setDefaultForeground(TCODColor::white);
+	int shortcut = 'a';
+	int y = 1;
+	for (Actor **it = owner->container->inventory.begin();
+		it != owner->container->inventory.end(); it++) {
+		Actor *actor = *it;
+		con.printf(2, y, "(%c) %s", shortcut, actor->get_name());
+		y++;
+		shortcut++;
+	}
+	//blit the inventory console on the console
+	TCODConsole::blit(&con, 0, 0, INVENTORY_WIDTH, INVENTORY_HEIGHT,
+		TCODConsole::root, engine.screenWidth / 2 - INVENTORY_WIDTH / 2,
+		engine.screenHeight / 2 - INVENTORY_HEIGHT / 2);
+	TCODConsole::flush();
+
+	//w8 a key press
+	TCOD_key_t key;
+	TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, nullptr, true);
+	if (key.vk == TCODK_CHAR) {
+		int actorIndex = key.c - 'a';
+		if (actorIndex >= 0 && actorIndex < owner->container->inventory.size()) {
+			return owner->container->inventory.get(actorIndex);
+		}
+	}
+	return nullptr;
 }
 
 void MonsterAi::update(Actor * owner)

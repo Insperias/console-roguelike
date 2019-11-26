@@ -36,9 +36,19 @@ void Destructible::die(Actor * owner)
 	owner->set_ch('%');
 	owner->set_color(TCODColor::darkRed);
 	owner->set_name(corpseName);
-	owner->blocks = false;
+	owner->set_block(false);
 
 	engine.sendToBack(owner);
+}
+
+float Destructible::heal(float amount)
+{
+	this->hp += amount;
+	if (this->hp > this->maxHp) {
+		amount -= this->hp - this->maxHp;
+		hp = maxHp;
+	}
+	return amount;
 }
 
 MonsterDestructible::MonsterDestructible(float maxHp, float defense, const char * corpseName) :
