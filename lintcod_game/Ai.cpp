@@ -18,7 +18,7 @@ void PlayerAi::update(Actor * owner)
 	}
 
 	int dx = 0, dy = 0;
-	switch (engine.lastKey.vk) { //player move
+	switch (engine.get_last_key().vk) { //player move
 	case TCODK_UP:
 		dy = -1;
 		break;
@@ -32,7 +32,7 @@ void PlayerAi::update(Actor * owner)
 		dx = 1;
 		break;
 	case TCODK_CHAR :
-		handleActionKey(owner, engine.lastKey.c);
+		handleActionKey(owner, engine.get_last_key().c);
 		break;
 	default:break;
 	}
@@ -77,12 +77,36 @@ void PlayerAi::handleActionKey(Actor * owner, int ascii)
 	}
 	case 'i': //display inventory
 	{
-		Actor *actor = choseFromInventory(owner);
-		if (actor) {
-			actor->pickable->use(actor, owner);
-			engine.gameStatus = Engine::NEW_TURN;
+			this->inventory_status = PlayerAi::OPEN;
+			while (inventory_status == PlayerAi::OPEN)
+			{
+				Actor *actor = choseFromInventory(owner);
+				if (actor) {
+					bool spell = actor->get_ch() == '#';
+					if (spell) {
+						this->inventory_status = PlayerAi::CLOSE;
+					}
+					actor->pickable->use(actor, owner);
+					engine.gameStatus = Engine::NEW_TURN;
+				}
+				
+			}
+			break;
+
+	}
+	case 'd': //drop item
+	{
+		this->inventory_status = PlayerAi::OPEN;
+		while (inventory_status == PlayerAi::OPEN)
+		{
+			Actor *actor = choseFromInventory(owner);
+			if (actor) {
+				actor->pickable->drop(actor, owner);
+				engine.gameStatus = Engine::NEW_TURN;
+			}
 		}
 	}
+	break;
 	}
 }
 
@@ -141,14 +165,18 @@ Actor * PlayerAi::choseFromInventory(Actor * owner)
 	}
 	//blit the inventory console on the console
 	TCODConsole::blit(&con, 0, 0, INVENTORY_WIDTH, INVENTORY_HEIGHT,
-		TCODConsole::root, engine.screenWidth / 2 - INVENTORY_WIDTH / 2,
-		engine.screenHeight / 2 - INVENTORY_HEIGHT / 2);
+		TCODConsole::root, engine.get_screen_width() / 2 - INVENTORY_WIDTH / 2,
+		engine.get_screen_height() / 2 - INVENTORY_HEIGHT / 2);
 	TCODConsole::flush();
 
 	//w8 a key press
 	TCOD_key_t key;
 	TCODSystem::waitForEvent(TCOD_EVENT_KEY_PRESS, &key, nullptr, true);
 	if (key.vk == TCODK_CHAR) {
+		if (key.c == 'i') {
+			this->inventory_status = PlayerAi::CLOSE;
+			return nullptr;
+		}
 		int actorIndex = key.c - 'a';
 		if (actorIndex >= 0 && actorIndex < owner->container->inventory.size()) {
 			return owner->container->inventory.get(actorIndex);
@@ -199,5 +227,37 @@ void MonsterAi::moveOrAttack(Actor * owner, int targetx, int targety)
 	}
 	else if (owner->attacker) {
 		owner->attacker->attack(owner, engine.player);
+	}
+}
+
+ConfusedMonsterAi::ConfusedMonsterAi(int nbTurns, Ai * oldAi)
+	: nbTurns(nbTurns), oldAi(oldAi)
+{
+}
+
+void ConfusedMonsterAi::update(Actor * owner)
+{
+	TCODRandom *rng = TCODRandom::getInstance();
+	int dx = rng->getInt(-1, 1);
+	int dy = rng->getInt(-1, 1);
+
+	if (dx != 0 || dy != 0) {
+		int destx = owner->get_x_pos() + dx;
+		int desty = owner->get_y_pos() + dy;
+		if (engine.map->canWalk(destx, desty)) {
+			owner->set_x_pos(destx);
+			owner->set_y_pos(desty);
+		}
+		else {
+			Actor *actor = engine.getActor(destx, desty);
+			if (actor) {
+				owner->attacker->attack(owner, actor);
+			}
+		}
+	}
+	this->nbTurns--;
+	if (this->nbTurns == 0) {
+		owner->ai = oldAi;
+		delete this;
 	}
 }

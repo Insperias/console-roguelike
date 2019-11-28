@@ -35,6 +35,13 @@ void Actor::render() const
 	TCODConsole::root->setCharForeground(x, y, col);
 }
 
+float Actor::getDistance(int cx, int cy) const
+{
+	int dx = this->x - cx;
+	int dy = this->y - cy;
+	return sqrtf(dx * dx + dy * dy);
+}
+
 int Actor::get_x_pos() const
 {
 	return this->x;
@@ -60,7 +67,7 @@ void Actor::set_ch(int ch)
 	this->ch = ch;
 }
 
-int Actor::get_ch()
+int Actor::get_ch() const
 {
 	return this->ch;
 }
@@ -70,7 +77,7 @@ void Actor::set_color(TCODColor col)
 	this->col = col;
 }
 
-TCODColor Actor::get_color()
+TCODColor Actor::get_color() const
 {
 	return this->col;
 }
@@ -80,7 +87,7 @@ void Actor::set_name(const char * name)
 	this->name = name;
 }
 
-const char * Actor::get_name()
+const char * Actor::get_name() const
 {
 	return this->name;
 }

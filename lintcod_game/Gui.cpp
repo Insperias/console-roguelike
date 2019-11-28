@@ -10,7 +10,7 @@ static const int MSG_HEIGHT = PANEL_HEIGHT - 1;
 
 Gui::Gui()
 {
-	cons = new TCODConsole(engine.screenWidth, PANEL_HEIGHT);
+	cons = new TCODConsole(engine.get_screen_width(), PANEL_HEIGHT);
 }
 
 
@@ -48,15 +48,15 @@ void Gui::render()
 	renderMouseLook();
 
 	//set gui on root console
-	TCODConsole::blit(cons, 0, 0, engine.screenWidth, PANEL_HEIGHT,
-		TCODConsole::root, 0, engine.screenHeight - PANEL_HEIGHT);
+	TCODConsole::blit(cons, 0, 0, engine.get_screen_width(), PANEL_HEIGHT,
+		TCODConsole::root, 0, engine.get_screen_height() - PANEL_HEIGHT);
 
 	
 }
 
 void Gui::renderMouseLook()
 {
-	if (!engine.map->isInFov(engine.mouse.cx, engine.mouse.cy)) {
+	if (!engine.map->isInFov(engine.get_mouse().cx, engine.get_mouse().cy)) {
 		//mouse out of fov
 		return;
 	}
@@ -67,8 +67,8 @@ void Gui::renderMouseLook()
 	for (Actor **it = engine.actors.begin(); it != engine.actors.end(); it++) {
 		Actor *actor = *it;
 		//find actors under mouse cursor
-		if (actor->get_x_pos() == engine.mouse.cx &&
-			actor->get_y_pos() == engine.mouse.cy) {
+		if (actor->get_x_pos() == engine.get_mouse().cx &&
+			actor->get_y_pos() == engine.get_mouse().cy) {
 			if (!first) {
 				strcat(buff, ", ");
 			}

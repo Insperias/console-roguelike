@@ -4,7 +4,7 @@
 #include "pch.h"
 #include <stdio.h>
 
-Engine engine(100, 50);
+Engine engine(180, 90);
 
 
 int main() {

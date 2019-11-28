@@ -82,15 +82,44 @@ void Map::addMonster(int x, int y)
 
 void Map::computeFov()
 {
-	this->map->computeFov(engine.player->get_x_pos(), engine.player->get_y_pos(), engine.fovRadius);
+	this->map->computeFov(engine.player->get_x_pos(), engine.player->get_y_pos(), engine.get_fov_radius());
 }
 
 void Map::addItem(int x, int y)
 {
-	Actor *healthPotion = new Actor(x, y, '!', "health potion", TCODColor::cyan);
-	healthPotion->set_block(false);
-	healthPotion->pickable = new Healer(4);
-	engine.actors.push(healthPotion);
+	TCODRandom *rng = TCODRandom::getInstance();
+	int dice = rng->getInt(0, 100);
+	if (dice < 55) {
+		//create a health potion
+		Actor *healthPotion = new Actor(x, y, '!', "health potion", TCODColor::cyan);
+		healthPotion->set_block(false);
+		healthPotion->pickable = new Healer(4);
+		engine.actors.push(healthPotion);
+	}
+	else if (dice < 55 + 15) {
+		//create a scroll with lightning bolt
+		Actor *scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
+			TCODColor::lightYellow);
+		scrollOfLightningBolt->set_block(false);
+		scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
+		engine.actors.push(scrollOfLightningBolt);
+	}
+	else if (dice < 55 + 30) {
+		//create a scroll with fireball
+		Actor *scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
+			TCODColor::lightYellow);
+		scrollOfFireball->set_block(false);
+		scrollOfFireball->pickable = new Fireball(3, 12);
+		engine.actors.push(scrollOfFireball);
+	}
+	else {
+		//create a scroll with confusion
+		Actor *scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
+			TCODColor::lightYellow);
+		scrollOfConfusion->set_block(false);
+		scrollOfConfusion->pickable = new Confuser(5, 8);
+		engine.actors.push(scrollOfConfusion);
+	}
 }
 
 void Map::render() const

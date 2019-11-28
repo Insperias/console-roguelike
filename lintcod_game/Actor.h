@@ -20,17 +20,20 @@ public:
 	virtual ~Actor();
 	void update();
 	void render() const;
+	float getDistance(int cx, int cy) const;
+
+	//accessors
 	int get_x_pos() const;
 	int get_y_pos() const;
 	void set_x_pos(int);
 	void set_y_pos(int);
 	void set_ch(int ch) ;
-	int get_ch();
+	int get_ch() const;
 	void set_color(TCODColor col);
-	TCODColor get_color();
+	TCODColor get_color() const;
 	void set_name(const char* name);
-	const char* get_name();
+	const char* get_name() const;
 	void set_block(bool block) { this->blocks = block; }
-	bool get_block() { return this->blocks; }
+	bool get_block() const { return this->blocks; }
 };
 

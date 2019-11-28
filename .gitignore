@@ -101,3 +101,6 @@
 /lintcod_game/Release/Actor.obj
 /lintcod_game/x64/Debug/Pickable.obj
 /lintcod_game/x64/Debug/Container.obj
+/lintcod_game/x64/Release/Pickable.obj
+/lintcod_game/x64/Release/Gui.obj
+/lintcod_game/x64/Release/Container.obj

@@ -15,6 +15,12 @@ class Map
 {
 private:
 	int width, height;
+	Tile *tiles; //tiles on map
+	TCODMap *map;
+	friend class BspListener;
+
+	void dig(int x1, int y1, int x2, int y2);
+	void createRoom(bool first, int x1, int y1, int x2, int y2);
 public:
 	Map();
 	Map(int, int);
@@ -27,13 +33,15 @@ public:
 	void computeFov(); // player field of vision
 	void addItem(int x, int y);
 	void render() const;
-protected:
-	Tile *tiles; //tiles on map
-	TCODMap *map;
-	friend class BspListener;
 
-	void dig(int x1, int y1, int x2, int y2);
-	void createRoom(bool first, int x1, int y1, int x2, int y2);
+	//accessors
+	int get_width() const { return this->width; }
+	void set_width(int width) { this->width = width; }
+	int get_height() const { return this->height; }
+	void set_height(int height) { this->height = height; }
+
+protected:
+	
 
 };
 
