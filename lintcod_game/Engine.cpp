@@ -1,4 +1,5 @@
 #include "pch.h"
+#pragma warning(disable : 4996)
 
 Engine::Engine() : fovRadius(10), gameStatus(STARTUP)
 {
@@ -10,19 +11,10 @@ Engine::Engine() : fovRadius(10), gameStatus(STARTUP)
 }
 
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), fovRadius(10),
-	screenWidth(screenWidth), screenHeight(screenHeight)
+	screenWidth(screenWidth), screenHeight(screenHeight), player(nullptr), map(nullptr)
 {
 	TCODConsole::initRoot(screenWidth, screenHeight, "Hidden Dungeons of Balgrad", false);
-	this->player = new Actor(40, 25, '@', "player", TCODColor::white);
-	this->player->destructible = new PlayerDestructible(30, 3, "your cadaver");
-	this->player->attacker = new Attacker(5);
-	this->player->ai = new PlayerAi();
-	this->player->container = new Container(26);
-	this->actors.push(player);
-	this->map = new Map(screenWidth, screenHeight - 7);
 	this->gui = new Gui();
-	this->gui->message(TCODColor::orange, "Welcome stranger!\nPrepare to perish in the Hidden Dungeons of Balgrad.");
-	
 }
 
 
@@ -145,4 +137,73 @@ Actor * Engine::getActor(int x, int y) const
 		}
 	}
 	return nullptr;
+}
+
+void Engine::init()
+{
+	this->player = new Actor(40, 25, '@', "player", TCODColor::white);
+	this->player->destructible = new PlayerDestructible(30, 3, "your cadaver");
+	this->player->attacker = new Attacker(5);
+	this->player->ai = new PlayerAi();
+	this->player->container = new Container(26);
+	this->actors.push(player);
+	this->map = new Map(screenWidth, screenHeight - 7);
+	this->map->init(true);
+	this->gui->message(TCODColor::orange, "Welcome stranger!\nPrepare to perish in the Hidden Dungeons of Balgrad.");
+}
+
+void Engine::load()
+{
+	if (TCODSystem::fileExists("game.sav")) {
+		TCODZip zip;
+		zip.loadFromFile("game.sav");
+		//load map
+		int width = zip.getInt();
+		int height = zip.getInt();
+		map = new Map(width, height);
+		map->load(zip);
+		//load player
+		player = new Actor(0, 0, 0, nullptr, TCODColor::white);
+		player->load(zip);
+		actors.push(player);
+		//load other actors
+		int nbActors = zip.getInt();
+		while (nbActors > 0) {
+			Actor *actor = new Actor(0, 0, 0, nullptr, TCODColor::white);
+			actor->load(zip);
+			actors.push(actor);
+			nbActors--;
+		}
+		//load message log
+		gui->load(zip);
+	}
+	else {
+		engine.init();
+	}
+}
+
+void Engine::save()
+{
+	if (player->destructible->isDead()) {
+		TCODSystem::deleteFile("game.sav");
+	}
+	else {
+		TCODZip zip;
+		//save map
+		zip.putInt(map->get_width());
+		zip.putInt(map->get_height());
+		map->save(zip);
+		//save player
+		player->save(zip);
+		//save others actors
+		zip.putInt(actors.size() - 1);
+		for (Actor **it = actors.begin(); it != actors.end(); it++) {
+			if (*it != player) {
+				(*it)->save(zip);
+			}
+		}
+		//save message log
+		gui->save(zip);
+		zip.saveToFile("game.sav");
+	}
 }

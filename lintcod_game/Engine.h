@@ -30,6 +30,9 @@ public:
 	Actor *getClosetMonster(int x, int y, float range) const;
 	bool pickATile(int *x, int *y, float maxRange = 0.0f);
 	Actor *getActor(int x, int y) const;
+	void init();
+	void load();
+	void save();
 
 	//accessors
 	TCOD_key_t get_last_key() const { return this->lastKey; }

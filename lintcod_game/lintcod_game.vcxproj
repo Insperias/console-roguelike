@@ -156,7 +156,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\DEV\libtcod-1.15.0-x86_64-msvc\include\libtcod.hpp" />
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Ai.h" />
     <ClInclude Include="Attacker.h" />
@@ -166,6 +165,7 @@
     <ClInclude Include="Gui.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Persistent.h" />
     <ClInclude Include="Pickable.h" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +184,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Persistent.cpp" />
     <ClCompile Include="Pickable.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

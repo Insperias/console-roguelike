@@ -36,9 +36,6 @@
     <ClInclude Include="Ai.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\DEV\libtcod-1.15.0-x86_64-msvc\include\libtcod.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Gui.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
@@ -46,6 +43,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Container.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Persistent.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
@@ -81,6 +81,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="Container.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Persistent.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

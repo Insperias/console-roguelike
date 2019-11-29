@@ -1,5 +1,5 @@
 #pragma once
-class Actor
+class Actor : public Persistent
 {
 	int x, y; //pos on map
 	int ch; //symb ascii code
@@ -21,6 +21,8 @@ public:
 	void update();
 	void render() const;
 	float getDistance(int cx, int cy) const;
+	void load(TCODZip &zip);
+	void save(TCODZip &zip);
 
 	//accessors
 	int get_x_pos() const;

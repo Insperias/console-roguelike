@@ -1,5 +1,5 @@
 #pragma once
-class Container
+class Container : public Persistent
 {
 	int size; //max number of actors. 0=unlimited
 public:
@@ -9,5 +9,7 @@ public:
 	~Container();
 	bool add(Actor* actor);
 	void remove(Actor *actor);
+	void load(TCODZip &zip);
+	void save(TCODZip &zip);
 };
 

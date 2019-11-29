@@ -1,5 +1,5 @@
 #pragma once
-class Gui
+class Gui : public Persistent
 {
 public:
 	Gui();
@@ -7,6 +7,8 @@ public:
 	void render();
 	void renderMouseLook();
 	void message(const TCODColor &col, const char *text, ...);
+	void load(TCODZip &zip);
+	void save(TCODZip &zip);
 protected:
 	TCODConsole *cons;
 	struct Message {

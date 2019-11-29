@@ -11,16 +11,18 @@ struct Tile {
 
 
 
-class Map
+class Map : Persistent
 {
 private:
 	int width, height;
 	Tile *tiles; //tiles on map
 	TCODMap *map;
+	long seed;
+	TCODRandom *rng;
 	friend class BspListener;
 
 	void dig(int x1, int y1, int x2, int y2);
-	void createRoom(bool first, int x1, int y1, int x2, int y2);
+	void createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors);
 public:
 	Map();
 	Map(int, int);
@@ -33,16 +35,15 @@ public:
 	void computeFov(); // player field of vision
 	void addItem(int x, int y);
 	void render() const;
+	void init(bool withActors);
+	void load(TCODZip &zip);
+	void save(TCODZip &zip);
 
 	//accessors
 	int get_width() const { return this->width; }
 	void set_width(int width) { this->width = width; }
 	int get_height() const { return this->height; }
 	void set_height(int height) { this->height = height; }
-
-protected:
-	
-
 };
 
 class BspListener : public ITCODBspCallback { //using bsp-algorithm for random map creating
@@ -54,13 +55,13 @@ public:
 	bool visitNode(TCODBsp *node, void* userData) {
 		if (node->isLeaf()) {
 			int x, y, w, h;
+			bool withActors = (bool)userData;
 			//dig a room
-			TCODRandom *rng = TCODRandom::getInstance();
-			w = rng->getInt(ROOM_MIN_SIZE, node->w - 2);
-			h = rng->getInt(ROOM_MIN_SIZE, node->h - 2);
-			x = rng->getInt(node->x + 1, node->x + node->w - w - 1);
-			y = rng->getInt(node->y + 1, node->y + node->h - h - 1);
-			map.createRoom(roomNum == 0, x, y, x + w - 1, y + h - 1);
+			w = map.rng->getInt(ROOM_MIN_SIZE, node->w - 2);
+			h = map.rng->getInt(ROOM_MIN_SIZE, node->h - 2);
+			x = map.rng->getInt(node->x + 1, node->x + node->w - w - 1);
+			y = map.rng->getInt(node->y + 1, node->y + node->h - h - 1);
+			map.createRoom(roomNum == 0, x, y, x + w - 1, y + h - 1, withActors);
 
 			if (roomNum != 0) {
 				//dig a corridor from last room

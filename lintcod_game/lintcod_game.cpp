@@ -8,12 +8,14 @@ Engine engine(180, 90);
 
 
 int main() {
+	engine.load();
 	while (!TCODConsole::isWindowClosed()) {
 		
 		engine.update();
 		engine.render();
 		TCODConsole::flush();
 	}
+	engine.save();
 	return 0;
 }
 

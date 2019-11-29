@@ -42,6 +42,20 @@ void Pickable::drop(Actor * owner, Actor * wearer)
 	}
 }
 
+Pickable * Pickable::create(TCODZip & zip)
+{
+	PickableType type = (PickableType)zip.getInt();
+	Pickable *pickable = nullptr;
+	switch (type) {
+	case HEALER: pickable = new Healer(0); break;
+	case LIGHTNING_BOLT: pickable = new LightningBolt(0, 0); break;
+	case CONFUSER: pickable = new Confuser(0, 0); break;
+	case FIREBALL: pickable = new Fireball(0, 0); break;
+	}
+	pickable->load(zip);
+	return pickable;
+}
+
 Healer::Healer(float amount) : amount(amount)
 {
 }
@@ -57,8 +71,25 @@ bool Healer::use(Actor * owner, Actor * wearer)
 	return false;
 }
 
+void Healer::load(TCODZip & zip)
+{
+	amount = zip.getFloat();
+}
+
+void Healer::save(TCODZip & zip)
+{
+	zip.putInt(HEALER);
+	zip.putFloat(amount);
+}
+
 DamageSpell::DamageSpell(float range, float damage) : range(range), damage(damage)
 {
+}
+
+void DamageSpell::load(TCODZip & zip)
+{
+	range = zip.getFloat();
+	damage = zip.getFloat();
 }
 
 LightningBolt::LightningBolt(float range, float damage)
@@ -68,7 +99,7 @@ LightningBolt::LightningBolt(float range, float damage)
 
 bool LightningBolt::use(Actor * owner, Actor * wearer)
 {
-	Actor *closestMonster = engine.getClosetMonster(wearer->get_x_pos(),
+	/*Actor *closestMonster = engine.getClosetMonster(wearer->get_x_pos(),
 		wearer->get_y_pos(), this->range);
 	if (!closestMonster) {
 		engine.gui->message(TCODColor::lightGrey, "No enemy is close enought to strike");
@@ -78,8 +109,30 @@ bool LightningBolt::use(Actor * owner, Actor * wearer)
 	engine.gui->message(TCODColor::lightBlue,
 		"A lighting bolt strikes the %s with a loud thunder!\n"
 		"The damage is %g hp.", closestMonster->get_name(), this->damage);
-	closestMonster->destructible->takeDamage(closestMonster, this->damage);
+	closestMonster->destructible->takeDamage(closestMonster, this->damage);*/
+	engine.gui->message(TCODColor::cyan, "Left-click an enemy for the lightning bolt it,\nor right-click to cancel");
+	int x, y;
+	if (!engine.pickATile(&x, &y, range)) {
+		return false;
+	}
+
+	Actor *actor = engine.getActor(x, y);
+	if (!actor) {
+		return false;
+	}
+	engine.gui->message(TCODColor::lightBlue,
+		"A lightning bolt strikes the %s with a loud thunder!\n"
+		"The damage is %g hp.", actor->get_name(), this->damage);
+	actor->destructible->takeDamage(actor, this->damage);
+
 	return Pickable::use(owner, wearer);
+}
+
+void LightningBolt::save(TCODZip & zip)
+{
+	zip.putInt(LIGHTNING_BOLT);
+	zip.putFloat(range);
+	zip.putFloat(damage);
 }
 
 
@@ -110,8 +163,15 @@ bool Fireball::use(Actor * owner, Actor * wearer)
 	return Pickable::use(owner, wearer);
 }
 
+void Fireball::save(TCODZip & zip)
+{
+	zip.putInt(FIREBALL);
+	zip.putFloat(range);
+	zip.putFloat(damage);
+}
+
 Confuser::Confuser(int nbTurns, float range) 
-	: nbTurns(nbTurns), range(range)
+	: DebuffSpell(nbTurns, range)
 {
 }
 
@@ -134,4 +194,22 @@ bool Confuser::use(Actor * owner, Actor * wearer)
 		actor->get_name());
 	return Pickable::use(owner, wearer);
 	
+}
+
+void Confuser::save(TCODZip & zip)
+{
+	zip.putInt(CONFUSER);
+	zip.putInt(nbTurns);
+	zip.putFloat(range);
+}
+
+DebuffSpell::DebuffSpell(int nbTurns, float range) 
+	: nbTurns(nbTurns), range(range)
+{
+}
+
+void DebuffSpell::load(TCODZip & zip)
+{
+	nbTurns = zip.getInt();
+	range = zip.getFloat();
 }

@@ -9,12 +9,7 @@ Map::Map()
 
 Map::Map(int width, int height): width(width), height(height)
 {
-	this->tiles = new Tile[width*height];
-	this->map = new TCODMap(width, height);
-	TCODBsp bsp(0, 0, width, height);
-	bsp.splitRecursive(nullptr, 16, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
-	BspListener listener(*this);
-	bsp.traverseInvertedLevelOrder(&listener, nullptr);
+	seed = TCODRandom::getInstance()->getInt(0, 0x7FFFFFFF);
 }
 
 
@@ -99,7 +94,7 @@ void Map::addItem(int x, int y)
 	else if (dice < 55 + 15) {
 		//create a scroll with lightning bolt
 		Actor *scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
-			TCODColor::lightYellow);
+			TCODColor::lightBlue);
 		scrollOfLightningBolt->set_block(false);
 		scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
 		engine.actors.push(scrollOfLightningBolt);
@@ -115,7 +110,7 @@ void Map::addItem(int x, int y)
 	else {
 		//create a scroll with confusion
 		Actor *scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
-			TCODColor::lightYellow);
+			TCODColor::lightCyan);
 		scrollOfConfusion->set_block(false);
 		scrollOfConfusion->pickable = new Confuser(5, 8);
 		engine.actors.push(scrollOfConfusion);
@@ -142,6 +137,34 @@ void Map::render() const
 		}
 }
 
+void Map::init(bool withActors)
+{
+	rng = new TCODRandom(seed, TCOD_RNG_CMWC);
+	this->tiles = new Tile[width*height];
+	this->map = new TCODMap(width, height);
+	TCODBsp bsp(0, 0, width, height);
+	bsp.splitRecursive(nullptr, 16, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
+	BspListener listener(*this);
+	bsp.traverseInvertedLevelOrder(&listener, (void*)withActors);
+}
+
+void Map::load(TCODZip & zip)
+{
+	seed = zip.getInt();
+	init(false);
+	for (int i = 0; i < width*height; i++) {
+		tiles[i].explored = zip.getInt();
+	}
+}
+
+void Map::save(TCODZip & zip)
+{
+	zip.putInt(seed);
+	for (int i = 0; i < width*height; i++) {
+		zip.putInt(tiles[i].explored);
+	}
+}
+
 void Map::dig(int x1, int y1, int x2, int y2)
 {
 	if (x2 < x1) {
@@ -162,9 +185,12 @@ void Map::dig(int x1, int y1, int x2, int y2)
 	}
 }
 
-void Map::createRoom(bool first, int x1, int y1, int x2, int y2)
+void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors)
 {
 	this->dig(x1, y1, x2, y2);
+	if (!withActors) {
+		return;
+	}
 
 	if (first) {
 		//player in first room
