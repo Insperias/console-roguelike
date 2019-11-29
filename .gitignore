@@ -111,3 +111,5 @@
 /.vs/console-roguelike/v15/.suo
 /lintcod_game/game.sav
 /lintcod_game/x64/Debug/Persistent.obj
+/lintcod_game/x64/Release/Persistent.obj
+/x64/Release/grame.png

@@ -19,9 +19,8 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), fovRadi
 
 
 Engine::~Engine()
-{
-	actors.clearAndDelete();
-	delete map;
+{	
+	term();
 	delete gui;
 }
 
@@ -36,7 +35,12 @@ void Engine::update()
 	if (gameStatus == STARTUP) map->computeFov();
 	gameStatus = IDLE;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
+	if (lastKey.vk == TCODK_ESCAPE) {
+		save();
+		load();
+	}
 	this->player->update();
+
 
 
 	if (gameStatus == NEW_TURN) {
@@ -150,12 +154,33 @@ void Engine::init()
 	this->map = new Map(screenWidth, screenHeight - 7);
 	this->map->init(true);
 	this->gui->message(TCODColor::orange, "Welcome stranger!\nPrepare to perish in the Hidden Dungeons of Balgrad.");
+	this->gameStatus = STARTUP;
 }
 
 void Engine::load()
 {
+	engine.gui->menu.clear();
+	engine.gui->menu.addItem(Menu::NEW_GAME, "New game");
+
 	if (TCODSystem::fileExists("game.sav")) {
+		engine.gui->menu.addItem(Menu::CONTINUE, "Continue");
+	}
+	engine.gui->menu.addItem(Menu::EXIT, "Exit");
+	Menu::MenuItemCode menuItem = engine.gui->menu.pick();
+	if (menuItem == Menu::EXIT || menuItem == Menu::NONE) {
+		//exit or window closed
+		save();
+		exit(0);
+	}
+	else if (menuItem == Menu::NEW_GAME) {
+		//new game
+		engine.term();
+		engine.init();
+	}
+	else {
 		TCODZip zip;
+		//continue a saved game
+		engine.term();
 		zip.loadFromFile("game.sav");
 		//load map
 		int width = zip.getInt();
@@ -176,9 +201,7 @@ void Engine::load()
 		}
 		//load message log
 		gui->load(zip);
-	}
-	else {
-		engine.init();
+		gameStatus = STARTUP;
 	}
 }
 
@@ -206,4 +229,11 @@ void Engine::save()
 		gui->save(zip);
 		zip.saveToFile("game.sav");
 	}
+}
+
+void Engine::term()
+{
+	actors.clearAndDelete();
+	if (map) delete map;
+	gui->clear();
 }

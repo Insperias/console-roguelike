@@ -9,7 +9,7 @@ public:
 	void drop(Actor *owner, Actor *wearer);
 	static Pickable *create(TCODZip &zip);
 protected:
-	enum PickableType {HEALER, LIGHTNING_BOLT, CONFUSER, FIREBALL};
+	enum PickableType {HEALER, LIGHTNING_BOLT, CONFUSER, FIREBALL, LIGHTNING_CHAIN};
 };
 
 class Healer : public Pickable {
@@ -46,6 +46,13 @@ class LightningBolt : public DamageSpell {
 public:
 	LightningBolt(float range, float damage);
 	bool use(Actor *owner, Actor *wearer) override;
+	void save(TCODZip &zip);
+};
+
+class LightningChain : public DamageSpell {
+public:
+	LightningChain(float range, float damage);
+	bool use(Actor* owner, Actor *wearer) override;
 	void save(TCODZip &zip);
 };
 

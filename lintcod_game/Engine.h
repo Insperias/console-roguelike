@@ -33,6 +33,7 @@ public:
 	void init();
 	void load();
 	void save();
+	void term();
 
 	//accessors
 	TCOD_key_t get_last_key() const { return this->lastKey; }

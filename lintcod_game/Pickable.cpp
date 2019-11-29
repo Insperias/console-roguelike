@@ -51,6 +51,7 @@ Pickable * Pickable::create(TCODZip & zip)
 	case LIGHTNING_BOLT: pickable = new LightningBolt(0, 0); break;
 	case CONFUSER: pickable = new Confuser(0, 0); break;
 	case FIREBALL: pickable = new Fireball(0, 0); break;
+	case LIGHTNING_CHAIN: pickable = new LightningChain(0, 0); break;
 	}
 	pickable->load(zip);
 	return pickable;
@@ -212,4 +213,54 @@ void DebuffSpell::load(TCODZip & zip)
 {
 	nbTurns = zip.getInt();
 	range = zip.getFloat();
+}
+
+LightningChain::LightningChain(float range, float damage)
+	: DamageSpell(range, damage)
+{
+}
+
+bool LightningChain::use(Actor * owner, Actor * wearer)
+{
+	engine.gui->message(TCODColor::cyan, "Left-click a target tile for the lightning chain,\nor right-click to cancel");
+	int x, y;
+	if (!engine.pickATile(&x, &y)) {
+		return false;
+	}
+	Actor *actor = engine.getActor(x, y);
+	if (!actor) {
+		return false;
+	}
+	Actor *closestMonster = engine.getClosetMonster(actor->get_x_pos(),
+		actor->get_y_pos(), this->range);
+	if (!closestMonster) {
+		engine.gui->message(TCODColor::blue, "The %s gets burned for %g hp ", 
+			actor->get_name(), this->damage);
+	}
+	else {
+		engine.gui->message(TCODColor::blue, "The %s gets burned for %g hp and spawned a chain of lightning",
+			actor->get_name(), this->damage);
+	}
+	actor->destructible->takeDamage(actor, this->damage);
+	
+	for (Actor **it = engine.actors.begin();
+		it != engine.actors.end(); it++) {
+		Actor *chain_actor = *it;
+		if (chain_actor->destructible && !chain_actor->destructible->isDead()
+			&& chain_actor->getDistance(x, y) <= this->range
+			&& chain_actor != actor) {
+			engine.gui->message(TCODColor::blue, "The %s gets burned for %g hp ",
+				chain_actor->get_name(), this->damage);
+			chain_actor->destructible->takeDamage(chain_actor, this->damage);
+		}
+	}
+	return Pickable::use(owner, wearer);
+
+}
+
+void LightningChain::save(TCODZip & zip)
+{
+	zip.putInt(LIGHTNING_CHAIN);
+	zip.putFloat(range);
+	zip.putFloat(damage);
 }

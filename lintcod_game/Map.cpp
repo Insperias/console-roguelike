@@ -1,7 +1,7 @@
 #include "pch.h"
 
 static const int MAX_ROOM_MONSTERS = 3;
-static const int MAX_ROOM_ITEMS = 2;
+static const int MAX_ROOM_ITEMS = 4;
 
 Map::Map()
 {
@@ -84,14 +84,14 @@ void Map::addItem(int x, int y)
 {
 	TCODRandom *rng = TCODRandom::getInstance();
 	int dice = rng->getInt(0, 100);
-	if (dice < 55) {
+	if (dice < 20) {
 		//create a health potion
 		Actor *healthPotion = new Actor(x, y, '!', "health potion", TCODColor::cyan);
 		healthPotion->set_block(false);
 		healthPotion->pickable = new Healer(4);
 		engine.actors.push(healthPotion);
 	}
-	else if (dice < 55 + 15) {
+	else if (dice < 20 + 20) {
 		//create a scroll with lightning bolt
 		Actor *scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
 			TCODColor::lightBlue);
@@ -99,7 +99,7 @@ void Map::addItem(int x, int y)
 		scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
 		engine.actors.push(scrollOfLightningBolt);
 	}
-	else if (dice < 55 + 30) {
+	else if (dice < 20 + 20 + 20) {
 		//create a scroll with fireball
 		Actor *scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
 			TCODColor::lightYellow);
@@ -107,13 +107,20 @@ void Map::addItem(int x, int y)
 		scrollOfFireball->pickable = new Fireball(3, 12);
 		engine.actors.push(scrollOfFireball);
 	}
-	else {
+	else if (dice < 20 + 20 + 20 + 20) {
 		//create a scroll with confusion
 		Actor *scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
 			TCODColor::lightCyan);
 		scrollOfConfusion->set_block(false);
 		scrollOfConfusion->pickable = new Confuser(5, 8);
 		engine.actors.push(scrollOfConfusion);
+	}
+	else {
+		Actor *scrollOfLightningChain = new Actor(x, y, '#', "scroll of lightning chain",
+			TCODColor::darkBlue);
+		scrollOfLightningChain->set_block(false);
+		scrollOfLightningChain->pickable = new LightningChain(7, 15);
+		engine.actors.push(scrollOfLightningChain);
 	}
 }
 
