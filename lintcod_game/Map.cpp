@@ -1,13 +1,14 @@
 #include "pch.h"
 
-static const int MAX_ROOM_MONSTERS = 4;
-static const int MAX_ROOM_ITEMS = 3;
+static const int MAX_ROOM_MONSTERS = 3;
+static const int MAX_ROOM_ITEMS = 4;
+
 
 Map::Map()
 {
 }
 
-Map::Map(int width, int height): width(width), height(height)
+Map::Map(int width, int height): width(width), height(height), currentScentValue(SCENT_THRESHOLD)
 {
 	seed = TCODRandom::getInstance()->getInt(0, 0x7FFFFFFF);
 }
@@ -77,7 +78,22 @@ void Map::addMonster(int x, int y)
 
 void Map::computeFov()
 {
-	this->map->computeFov(engine.player->get_x_pos(), engine.player->get_y_pos(), engine.get_fov_radius());
+	map->computeFov(engine.player->get_x_pos(), engine.player->get_y_pos(), engine.get_fov_radius());
+	//update scent field
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			if (isInFov(x, y)) {
+				unsigned int oldScent = getScent(x, y);
+				int dx = x - engine.player->get_x_pos();
+				int dy = y - engine.player->get_y_pos();
+				long distance = (int)sqrt(dx*dx + dy * dy);
+				unsigned int newScent = currentScentValue - distance;
+				if (newScent > oldScent) {
+					tiles[x + y * width].scent = newScent;
+				}
+			}
+		}
+	}
 }
 
 void Map::addItem(int x, int y)
@@ -124,6 +140,11 @@ void Map::addItem(int x, int y)
 	}
 }
 
+unsigned int Map::getScent(int x, int y) const
+{
+	return tiles[x + y * width].scent;
+}
+
 void Map::render() const
 {
 	static const TCODColor darkWall(0, 0, 100);
@@ -150,7 +171,7 @@ void Map::init(bool withActors)
 	this->tiles = new Tile[width*height];
 	this->map = new TCODMap(width, height);
 	TCODBsp bsp(0, 0, width, height);
-	bsp.splitRecursive(nullptr, 16, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
+	bsp.splitRecursive(nullptr, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
 	BspListener listener(*this);
 	bsp.traverseInvertedLevelOrder(&listener, (void*)withActors);
 }

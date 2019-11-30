@@ -6,7 +6,8 @@ static const int ROOM_MIN_SIZE = 6;
 
 struct Tile {
 	bool explored; //player seen tile?
-	Tile() :explored(false) {}
+	unsigned int scent; //amount fo player scent on this cell
+	Tile() :explored(false), scent(0) {}
 }; //Tile data
 
 
@@ -15,6 +16,7 @@ class Map : Persistent
 {
 private:
 	int width, height;
+	unsigned int currentScentValue;
 	Tile *tiles; //tiles on map
 	TCODMap *map;
 	long seed;
@@ -34,6 +36,7 @@ public:
 	void addMonster(int x, int y);
 	void computeFov(); // player field of vision
 	void addItem(int x, int y);
+	unsigned int getScent(int x, int y) const;
 	void render() const;
 	void init(bool withActors);
 	void load(TCODZip &zip);
@@ -44,6 +47,8 @@ public:
 	void set_width(int width) { this->width = width; }
 	int get_height() const { return this->height; }
 	void set_height(int height) { this->height = height; }
+	void set_current_scent(unsigned int scent) { this->currentScentValue = scent; }
+	unsigned get_current_scent() const { return this->currentScentValue; }
 };
 
 class BspListener : public ITCODBspCallback { //using bsp-algorithm for random map creating

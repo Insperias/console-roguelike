@@ -43,8 +43,8 @@ void Engine::update()
 	this->player->update();
 
 
-
 	if (gameStatus == NEW_TURN) {
+		map->set_current_scent(map->get_current_scent() + 1);
 		for (Actor **iterator = actors.begin(); iterator != actors.end();
 			iterator++) {
 			Actor *actor = *iterator;
@@ -269,4 +269,32 @@ void Engine::nextLevel()
 	map = new Map(this->screenWidth, this->screenHeight - 7);
 	map->init(true);
 	gameStatus = STARTUP;
+}
+
+void Engine::increaseDifficulty()
+{
+	for (Actor **it = engine.actors.begin();
+		it != engine.actors.end(); it++) {
+		Actor *actor = *it;
+		if (actor != player && actor->destructible) {
+			actor->attacker->set_power(actor->attacker->get_power() + 2);
+			actor->destructible->set_maxHp(actor->destructible->get_maxHp() + 20);
+			actor->destructible->set_defense(actor->destructible->get_defense() + 1.5f);
+			actor->destructible->set_xp(actor->destructible->get_xp() + 7);
+		}
+		if (actor != player && actor->pickable)
+		{
+			if (actor->pickable->get_type() == actor->pickable->DAMAGE_SPELL) {
+				DamageSpell *spell = (DamageSpell*)actor->pickable;
+				spell->set_damage(spell->get_damage() + 7);
+				actor->pickable = spell;
+			}
+			else if (actor->pickable->get_type() == actor->pickable->HEAL_SPELL) {
+				Healer* spell = (Healer*)actor->pickable;
+				spell->set_amount(spell->get_amount() + 3);
+				actor->pickable = spell;
+			}
+
+		}
+	}
 }

@@ -1,6 +1,5 @@
 #include "pch.h"
 
-static const int TRACKING_TURNS = 3;
 const int LEVEL_UP_BASE = 50;
 const int LEVEL_UP_FACTOR = 75;
 
@@ -62,32 +61,10 @@ void PlayerAi::update(Actor * owner)
 			break;
 		default:break;
 			
-			if (xpLevel % 2) {
-				for (Actor **it = engine.actors.begin();
-					it != engine.actors.end(); it++) {
-					Actor *actor = *it;
-					if (actor != owner && actor->destructible) {
-						actor->attacker->set_power(actor->attacker->get_power() + 2);
-						actor->destructible->set_maxHp(actor->destructible->get_maxHp() + 20);
-						actor->destructible->set_defense(actor->destructible->get_defense() + 1.5f);
-						actor->destructible->set_xp(actor->destructible->get_xp() + 7);
-					}
-					if (actor != owner && actor->pickable)
-					{
-						if (actor->pickable->get_type() == actor->pickable->DAMAGE_SPELL) {
-							DamageSpell *spell = (DamageSpell*)actor->pickable;
-							spell->set_damage(spell->get_damage() + 7);
-							actor->pickable = spell;
-						}
-						else if (actor->pickable->get_type() == actor->pickable->HEAL_SPELL) {
-							Healer* spell = (Healer*)actor->pickable;
-							spell->set_amount(spell->get_amount() + 3);
-							actor->pickable = spell;
-						}
-
-					}
-				}
-			}
+			
+		}
+		if (xpLevel % 2) {
+			engine.increaseDifficulty();
 		}
 	}
 	if (owner->destructible && owner->destructible->isDead()) {
@@ -199,12 +176,13 @@ void PlayerAi::handleActionKey(Actor * owner, int ascii)
 
 void PlayerAi::load(TCODZip & zip)
 {
-
+	xpLevel = zip.getInt();
 }
 
 void PlayerAi::save(TCODZip & zip)
 {
 	zip.putInt(PLAYER);
+	zip.putInt(xpLevel);
 }
 
 int PlayerAi::getNextLevelXp()
@@ -292,54 +270,63 @@ void MonsterAi::update(Actor * owner)
 	if (owner->destructible && owner->destructible->isDead()) {
 		return;
 	}
-	if (engine.map->isInFov(owner->get_x_pos(), owner->get_y_pos())) {
-		//can see the player, move to him
-		this->moveCount = TRACKING_TURNS;
-	}
-	else {
-		this->moveCount--;
-	}
-	if (moveCount > 0) {
 		moveOrAttack(owner, engine.player->get_x_pos(), engine.player->get_y_pos());
-	}
 }
 
 void MonsterAi::load(TCODZip & zip)
 {
-	moveCount = zip.getInt();
 }
 
 void MonsterAi::save(TCODZip & zip)
 {
 	zip.putInt(MONSTER);
-	zip.putInt(moveCount);
 }
 
 void MonsterAi::moveOrAttack(Actor * owner, int targetx, int targety)
 {
 	int dx = targetx - owner->get_x_pos();
 	int dy = targety - owner->get_y_pos();
-	int stepdx = (dx > 0 ? 1 : -1);
-	int stepdy = (dy > 0 ? 1 : -1);
 	float distance = sqrtf(dx * dx + dy * dy);
 
-	if (distance >= 2) {
+	if (distance < 2) {
+		//melee range. attacking
+		if (owner->attacker) {
+			owner->attacker->attack(owner, engine.player);
+		}
+		return;
+	}
+	else if (engine.map->isInFov(owner->get_x_pos(), owner->get_y_pos())) {
+		//seeing the player. go to him
 		dx = (int)(round(dx / distance));
 		dy = (int)(round(dy / distance));
-
 		if (engine.map->canWalk(owner->get_x_pos() + dx, owner->get_y_pos() + dy)) {
 			owner->set_x_pos(owner->get_x_pos() + dx);
 			owner->set_y_pos(owner->get_y_pos() + dy);
+			return;
 		}
 	}
-	else if (engine.map->canWalk(owner->get_x_pos() + stepdx, owner->get_y_pos())) {
-		owner->set_x_pos(owner->get_x_pos() + stepdx);
+	//player not visible. use scent tracking.
+	//find cell with highest scnet lvl
+	unsigned int bestLvl = 0;
+	int bestCellIndex = -1;
+	static int tdx[8] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+	static int tdy[8] = { -1, -1, -1, 0, 0, 1, 1, 1 };
+	for (int i = 0; i < 8; i++) {
+		int cellx = owner->get_x_pos() + tdx[i];
+		int celly = owner->get_y_pos() + tdy[i];
+		if (engine.map->canWalk(cellx, celly)) {
+			unsigned int cellScent = engine.map->getScent(cellx, celly);
+			if (cellScent > engine.map->get_current_scent() - SCENT_THRESHOLD
+				&& cellScent > bestLvl) {
+				bestLvl = cellScent;
+				bestCellIndex = i;
+			}
+		}
 	}
-	else if (engine.map->canWalk(owner->get_x_pos(), owner->get_y_pos() + stepdy)) {
-		owner->set_y_pos(owner->get_y_pos() + stepdy);
-	}
-	else if (owner->attacker) {
-		owner->attacker->attack(owner, engine.player);
+	if (bestCellIndex != -1) {
+		//follow the scent
+		owner->set_x_pos(owner->get_x_pos() + tdx[bestCellIndex]);
+		owner->set_y_pos(owner->get_y_pos() + tdy[bestCellIndex]);
 	}
 }
 

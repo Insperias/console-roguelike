@@ -37,6 +37,7 @@ public:
 	void save();
 	void term();
 	void nextLevel();
+	void increaseDifficulty();
 
 	//accessors
 	TCOD_key_t get_last_key() const { return this->lastKey; }

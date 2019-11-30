@@ -1,4 +1,7 @@
 #pragma once
+// after 20 turns, the monster cannot smell the scent anymore
+static const int SCENT_THRESHOLD = 20;
+
 class Ai : public Persistent
 {
 public:
@@ -34,7 +37,6 @@ public:
 	void load(TCODZip &zip);
 	void save(TCODZip &zip);
 protected:
-	int moveCount=0;
 	void moveOrAttack(Actor *owner, int targetx, int targety);
 };
 
