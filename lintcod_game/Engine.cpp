@@ -11,7 +11,8 @@ Engine::Engine() : fovRadius(10), gameStatus(STARTUP)
 }
 
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP), fovRadius(10),
-	screenWidth(screenWidth), screenHeight(screenHeight), player(nullptr), map(nullptr)
+	screenWidth(screenWidth), screenHeight(screenHeight), player(nullptr), map(nullptr),
+	level(1)
 {
 	TCODConsole::initRoot(screenWidth, screenHeight, "Hidden Dungeons of Balgrad", false);
 	this->gui = new Gui();
@@ -65,7 +66,9 @@ void Engine::render()
 	//draw the actors
 	for (Actor **iterator = actors.begin(); iterator != actors.end(); iterator++) {
 		Actor *actor = *iterator;
-		if (this->map->isInFov(actor->get_x_pos(), actor->get_y_pos())) {
+		if ( actor != player && 
+			((!actor->get_fov_only() && map->isExplored(actor->get_x_pos(), actor->get_y_pos()))
+				|| this->map->isInFov(actor->get_x_pos(), actor->get_y_pos()))) {
 			actor->render();
 		}
 	}
@@ -151,6 +154,10 @@ void Engine::init()
 	this->player->ai = new PlayerAi();
 	this->player->container = new Container(26);
 	this->actors.push(player);
+	this->stairs = new Actor(0, 0, '>', "stairs", TCODColor::white);
+	this->stairs->set_block(false);
+	this->stairs->set_fov_only(false);
+	this->actors.push(stairs);
 	this->map = new Map(screenWidth, screenHeight - 7);
 	this->map->init(true);
 	this->gui->message(TCODColor::orange, "Welcome stranger!\nPrepare to perish in the Hidden Dungeons of Balgrad.");
@@ -191,6 +198,10 @@ void Engine::load()
 		player = new Actor(0, 0, 0, nullptr, TCODColor::white);
 		player->load(zip);
 		actors.push(player);
+		//load stairs
+		stairs = new Actor(0, 0, 0, nullptr, TCODColor::white);
+		stairs->load(zip);
+		actors.push(stairs);
 		//load other actors
 		int nbActors = zip.getInt();
 		while (nbActors > 0) {
@@ -218,10 +229,12 @@ void Engine::save()
 		map->save(zip);
 		//save player
 		player->save(zip);
+		//save stairs
+		stairs->save(zip);
 		//save others actors
-		zip.putInt(actors.size() - 1);
+		zip.putInt(actors.size() - 2);
 		for (Actor **it = actors.begin(); it != actors.end(); it++) {
-			if (*it != player) {
+			if (*it != player && *it != stairs) {
 				(*it)->save(zip);
 			}
 		}
@@ -236,4 +249,24 @@ void Engine::term()
 	actors.clearAndDelete();
 	if (map) delete map;
 	gui->clear();
+}
+
+void Engine::nextLevel()
+{
+	level++;
+	gui->message(TCODColor::lightViolet, "You take a moment to rest and recover");
+	player->destructible->heal(player->destructible->get_maxHp() / 2);
+	gui->message(TCODColor::red, "AFter a rare moment, you descend\ndeeper into the heart of dungeon..");
+	delete map;
+	// delete all actors but player and stairs
+	for (Actor **it = actors.begin(); it != actors.end(); it++) {
+		if (*it != player && *it != stairs) {
+			delete *it;
+			it = actors.remove(it);
+		}
+	}
+	//create a new map
+	map = new Map(this->screenWidth, this->screenHeight - 7);
+	map->init(true);
+	gameStatus = STARTUP;
 }

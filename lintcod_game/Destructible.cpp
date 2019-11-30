@@ -6,8 +6,8 @@ Destructible::Destructible()
 {
 }
 
-Destructible::Destructible(float maxHp, float defense, const char * corpseName) :
-	maxHp(maxHp), hp(maxHp), defense(defense)
+Destructible::Destructible(float maxHp, float defense, const char * corpseName, int xp) :
+	maxHp(maxHp), hp(maxHp), defense(defense), xp(xp)
 {
 	this->corpseName = _strdup(corpseName);
 }
@@ -59,6 +59,7 @@ void Destructible::load(TCODZip & zip)
 	hp = zip.getFloat();
 	defense = zip.getFloat();
 	corpseName = _strdup(zip.getString());
+	xp = zip.getInt();
 }
 
 void Destructible::save(TCODZip & zip)
@@ -67,6 +68,7 @@ void Destructible::save(TCODZip & zip)
 	zip.putFloat(hp);
 	zip.putFloat(defense);
 	zip.putString(corpseName);
+	zip.putInt(xp);
 }
 
 Destructible * Destructible::create(TCODZip & zip)
@@ -74,21 +76,23 @@ Destructible * Destructible::create(TCODZip & zip)
 	DestructibleType type = (DestructibleType)zip.getInt();
 	Destructible *destructible = nullptr;
 	switch (type) {
-	case MONSTER: destructible = new MonsterDestructible(0, 0, nullptr); break;
+	case MONSTER: destructible = new MonsterDestructible(0, 0, nullptr, 0); break;
 	case PLAYER: destructible = new PlayerDestructible(0, 0, nullptr); break;
 	}
 	destructible->load(zip);
 	return destructible;
 }
 
-MonsterDestructible::MonsterDestructible(float maxHp, float defense, const char * corpseName) :
-	Destructible(maxHp, defense, corpseName)
+MonsterDestructible::MonsterDestructible(float maxHp, float defense, const char * corpseName, int xp) :
+	Destructible(maxHp, defense, corpseName, xp)
 {
 }
 
 void MonsterDestructible::die(Actor * owner)
 {
-	engine.gui->message(TCODColor::lightGrey,"%s is dead\n", owner->get_name());
+	engine.gui->message(TCODColor::lightGrey,"%s is dead. You gain %d xp\n", 
+		owner->get_name(), xp);
+	engine.player->destructible->set_xp(engine.player->destructible->get_xp() + xp);
 	Destructible::die(owner);
 }
 
@@ -99,7 +103,7 @@ void MonsterDestructible::save(TCODZip & zip)
 }
 
 PlayerDestructible::PlayerDestructible(float maxHp, float defense, const char * corpseName) :
-	Destructible(maxHp, defense, corpseName)
+	Destructible(maxHp, defense, corpseName, 0)
 {
 }
 

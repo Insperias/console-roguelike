@@ -1,6 +1,8 @@
 #include "pch.h"
 
 static const int TRACKING_TURNS = 3;
+const int LEVEL_UP_BASE = 50;
+const int LEVEL_UP_FACTOR = 75;
 
 Ai::Ai()
 {
@@ -24,8 +26,70 @@ Ai * Ai::create(TCODZip & zip)
 	return ai;
 }
 
+
+
+PlayerAi::PlayerAi() : xpLevel(1)
+{
+}
+
 void PlayerAi::update(Actor * owner)
 {
+	int levelUpXp = getNextLevelXp();
+	if (owner->destructible->get_xp() >= levelUpXp) {
+		xpLevel++;
+		owner->destructible->set_xp(owner->destructible->get_xp() - levelUpXp);
+
+		engine.gui->message(TCODColor::yellow, "You skills grow stronger! You reached level %d", xpLevel);
+		engine.gui->menu.clear();
+		engine.gui->menu.addItem(Menu::CONSTITUTION, "Constitution (+15HP)");
+		engine.gui->menu.addItem(Menu::STRENGTH, "Strength (+1 attack)");
+		engine.gui->menu.addItem(Menu::AGILITY, "Agility (+1 defense)");
+		Menu::MenuItemCode menuItem = engine.gui->menu.pick(Menu::PAUSE);
+
+		switch (menuItem) {
+		case Menu::CONSTITUTION:
+			owner->destructible->set_maxHp(owner->destructible->get_maxHp() + 15);
+			owner->destructible->set_hp(owner->destructible->get_hp() + 20);
+			if (owner->destructible->get_hp() > owner->destructible->get_maxHp()) {
+				owner->destructible->set_hp(owner->destructible->get_maxHp());
+			}
+			break;
+		case Menu::STRENGTH:
+			owner->attacker->set_power(owner->attacker->get_power() + 1);
+			break;
+		case Menu::AGILITY:
+			owner->destructible->set_defense(owner->destructible->get_defense() + 1);
+			break;
+		default:break;
+			
+			if (xpLevel % 2) {
+				for (Actor **it = engine.actors.begin();
+					it != engine.actors.end(); it++) {
+					Actor *actor = *it;
+					if (actor != owner && actor->destructible) {
+						actor->attacker->set_power(actor->attacker->get_power() + 2);
+						actor->destructible->set_maxHp(actor->destructible->get_maxHp() + 20);
+						actor->destructible->set_defense(actor->destructible->get_defense() + 1.5f);
+						actor->destructible->set_xp(actor->destructible->get_xp() + 7);
+					}
+					if (actor != owner && actor->pickable)
+					{
+						if (actor->pickable->get_type() == actor->pickable->DAMAGE_SPELL) {
+							DamageSpell *spell = (DamageSpell*)actor->pickable;
+							spell->set_damage(spell->get_damage() + 7);
+							actor->pickable = spell;
+						}
+						else if (actor->pickable->get_type() == actor->pickable->HEAL_SPELL) {
+							Healer* spell = (Healer*)actor->pickable;
+							spell->set_amount(spell->get_amount() + 3);
+							actor->pickable = spell;
+						}
+
+					}
+				}
+			}
+		}
+	}
 	if (owner->destructible && owner->destructible->isDead()) {
 		return;
 	}
@@ -95,7 +159,7 @@ void PlayerAi::handleActionKey(Actor * owner, int ascii)
 			{
 				Actor *actor = choseFromInventory(owner);
 				if (actor) {
-					bool spell = actor->get_ch() == '#';
+					bool spell = actor->get_name() != "scroll of heal";
 					if (spell) {
 						this->inventory_status = PlayerAi::CLOSE;
 					}
@@ -118,9 +182,19 @@ void PlayerAi::handleActionKey(Actor * owner, int ascii)
 				engine.gameStatus = Engine::NEW_TURN;
 			}
 		}
+		break;
 	}
-	break;
+	case '>'://next lvl dungeon
+		if (engine.stairs->get_x_pos() == owner->get_x_pos()
+			&& engine.stairs->get_y_pos() == owner->get_y_pos()) {
+			engine.nextLevel();
+		}
+		else {
+			engine.gui->message(TCODColor::lightGrey, "There are no stairs here");
+		}
+		break;
 	}
+	
 }
 
 void PlayerAi::load(TCODZip & zip)
@@ -131,6 +205,11 @@ void PlayerAi::load(TCODZip & zip)
 void PlayerAi::save(TCODZip & zip)
 {
 	zip.putInt(PLAYER);
+}
+
+int PlayerAi::getNextLevelXp()
+{
+	return LEVEL_UP_BASE + xpLevel * LEVEL_UP_FACTOR;
 }
 
 bool PlayerAi::moveOrAttack(Actor * owner, int targetx, int targety)

@@ -6,6 +6,7 @@ class Actor : public Persistent
 	TCODColor col; //color
 	const char *name;//name
 	bool blocks;//can walk on this actor?
+	bool fovOnly; // display when in fov
 	
 	
 public:
@@ -37,5 +38,7 @@ public:
 	const char* get_name() const;
 	void set_block(bool block) { this->blocks = block; }
 	bool get_block() const { return this->blocks; }
+	void set_fov_only(bool fovOnly) { this->fovOnly = fovOnly; }
+	bool get_fov_only() const { return this->fovOnly; }
 };
 

@@ -2,14 +2,19 @@
 class Pickable : public Persistent
 {
 public:
-	Pickable();
+	enum SpellType {DAMAGE_SPELL, DEBUFF_SPELL, HEAL_SPELL};
+	Pickable(SpellType type);
 	virtual ~Pickable();
 	bool pick(Actor *owner, Actor *wearer);
 	virtual bool use(Actor *owner, Actor *wearer);
 	void drop(Actor *owner, Actor *wearer);
 	static Pickable *create(TCODZip &zip);
+	
+	//accessors
+	SpellType get_type() const { return this->type; }
 protected:
 	enum PickableType {HEALER, LIGHTNING_BOLT, CONFUSER, FIREBALL, LIGHTNING_CHAIN};
+	SpellType type;
 };
 
 class Healer : public Pickable {
@@ -18,10 +23,12 @@ private:
 public:
 	Healer(float amount);
 	bool use(Actor *owner, Actor *wearer) override;
-	float get_amount() { return this->amount; }
-	void set_amount(float amount) { this->amount = amount; }
 	void load(TCODZip &zip);
 	void save(TCODZip &zip);
+	
+	//accessors
+	void set_amount(float amount) { this->amount = amount; }
+	float get_amount() const { return this->amount; }
 };
 
 class DamageSpell : public Pickable {
@@ -30,6 +37,10 @@ protected:
 public:
 	DamageSpell(float range, float damage);
 	void load(TCODZip &zip);
+	
+	//accesors
+	void set_damage(float damage) { this->damage = damage; }
+	float get_damage() const { return this->damage; }
 };
 
 class DebuffSpell : public Pickable {

@@ -1,11 +1,11 @@
-
 #include "pch.h"
-#include <string>
 
 static const int PANEL_HEIGHT = 7;
 static const int BAR_WIDTH = 20;
 static const int MSG_X = BAR_WIDTH + 2;
 static const int MSG_HEIGHT = PANEL_HEIGHT - 1;
+const int PAUSE_MENU_WIDTH = 30;
+const int PAUSE_MENU_HEIGHT = 15;
 
 
 Gui::Gui()
@@ -29,6 +29,17 @@ void Gui::render()
 	//draw hp bar
 	renderBar(1, 1, BAR_WIDTH, "HP", engine.player->destructible->get_hp(),
 		engine.player->destructible->get_maxHp(), TCODColor::lightRed, TCODColor::darkerRed);
+
+	//draw xp bar
+	PlayerAi *ai = (PlayerAi*)engine.player->ai;
+	char xpTxt[128];
+	sprintf(xpTxt, "XP(%d)", ai->get_xp_level());
+	renderBar(1, 5, BAR_WIDTH, xpTxt, engine.player->destructible->get_xp(),
+		ai->getNextLevelXp(), TCODColor::lightViolet, TCODColor::darkerViolet);
+
+	//dungeon lvl
+	cons->setDefaultForeground(TCODColor::white);
+	cons->printf(3, 3, "Dungeon level %d", engine.get_level());
 
 	//draw message log
 	int y = 1;
@@ -186,13 +197,28 @@ void Menu::addItem(MenuItemCode code, const char * label)
 	items.push(item);
 }
 
-Menu::MenuItemCode Menu::pick()
+Menu::MenuItemCode Menu::pick(DisplayMode mode)
 {
-	static TCODImage img("grame.png");
 	int selectedItem = 0;
+	int menux, menuy;
+
+	if (mode == PAUSE) {
+		menux = engine.get_screen_width() / 2 - PAUSE_MENU_WIDTH / 2;
+		menuy = engine.get_screen_height() / 2 - PAUSE_MENU_HEIGHT / 2;
+		TCODConsole::root->setDefaultForeground(TCODColor(200, 180, 50));
+		TCODConsole::root->printFrame(menux, menuy, PAUSE_MENU_WIDTH, PAUSE_MENU_HEIGHT, true,
+			TCOD_BKGND_ALPHA(70), "menu");
+		menux += 2;
+		menuy += 2;
+	}
+	else {
+		static TCODImage img("grame.png");
+		img.blit2x(TCODConsole::root, 25, 20);
+		menux = 20;
+		menuy = TCODConsole::root->getHeight() / 3;
+	}
 	
 	while (!TCODConsole::isWindowClosed()) {
-		img.blit2x(TCODConsole::root, 0, 0);
 		int currentItem = 0;
 		for (MenuItem **it = items.begin(); it != items.end(); it++) {
 			if (currentItem == selectedItem) {
@@ -201,7 +227,7 @@ Menu::MenuItemCode Menu::pick()
 			else {
 				TCODConsole::root->setDefaultForeground(TCODColor::lightGrey);
 			}
-			TCODConsole::root->printf(100, 10 + currentItem * 5, (*it)->label);
+			TCODConsole::root->printf(menux, menuy + currentItem * 5, (*it)->label);
 			currentItem++;
 		}
 		TCODConsole::flush();

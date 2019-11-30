@@ -7,9 +7,10 @@ protected:
 	float defense;// deflected hp
 	const char *corpseName;// the actor's name once dead/destroyed
 	enum DestructibleType {MONSTER, PLAYER};
+	int xp; // xp gained when killing monster (or player xp)
 public:
 	Destructible();
-	Destructible(float maxHp, float defense, const char *corpseName);
+	Destructible(float maxHp, float defense, const char *corpseName, int xp);
 	inline bool isDead() { return hp <= 0; }
 	virtual ~Destructible();
 	float takeDamage(Actor* owner, float damage);
@@ -26,11 +27,13 @@ public:
 	float get_hp() { return this->hp; }
 	float get_maxHp() { return this->maxHp; }
 	void set_maxHp(float maxHp) { this->maxHp = maxHp; }
+	int get_xp() const { return this->xp; }
+	void set_xp(int xp) { this->xp = xp; }
 };
 
 class MonsterDestructible : public Destructible {
 public:
-	MonsterDestructible(float maxHp, float defense, const char *corpseName);
+	MonsterDestructible(float maxHp, float defense, const char *corpseName, int xp);
 	void die(Actor *owner) override;
 	void save(TCODZip &zip);
 };

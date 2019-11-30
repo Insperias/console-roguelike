@@ -2,7 +2,7 @@
 #include "Pickable.h"
 
 
-Pickable::Pickable()
+Pickable::Pickable(SpellType type) : type(type)
 {
 }
 
@@ -57,7 +57,7 @@ Pickable * Pickable::create(TCODZip & zip)
 	return pickable;
 }
 
-Healer::Healer(float amount) : amount(amount)
+Healer::Healer(float amount) : amount(amount), Pickable(HEAL_SPELL)
 {
 }
 
@@ -83,7 +83,7 @@ void Healer::save(TCODZip & zip)
 	zip.putFloat(amount);
 }
 
-DamageSpell::DamageSpell(float range, float damage) : range(range), damage(damage)
+DamageSpell::DamageSpell(float range, float damage) : range(range), damage(damage), Pickable(DAMAGE_SPELL)
 {
 }
 
@@ -205,7 +205,7 @@ void Confuser::save(TCODZip & zip)
 }
 
 DebuffSpell::DebuffSpell(int nbTurns, float range) 
-	: nbTurns(nbTurns), range(range)
+	: nbTurns(nbTurns), range(range), Pickable(DEBUFF_SPELL)
 {
 }
 
@@ -222,7 +222,7 @@ LightningChain::LightningChain(float range, float damage)
 
 bool LightningChain::use(Actor * owner, Actor * wearer)
 {
-	engine.gui->message(TCODColor::cyan, "Left-click a target tile for the lightning chain,\nor right-click to cancel");
+	engine.gui->message(TCODColor::cyan, "Left-click an enemy for the lightning chain,\nor right-click to cancel");
 	int x, y;
 	if (!engine.pickATile(&x, &y)) {
 		return false;
@@ -248,7 +248,7 @@ bool LightningChain::use(Actor * owner, Actor * wearer)
 		Actor *chain_actor = *it;
 		if (chain_actor->destructible && !chain_actor->destructible->isDead()
 			&& chain_actor->getDistance(x, y) <= this->range
-			&& chain_actor != actor) {
+			&& chain_actor != actor && chain_actor != engine.player) {
 			engine.gui->message(TCODColor::blue, "The %s gets burned for %g hp ",
 				chain_actor->get_name(), this->damage);
 			chain_actor->destructible->takeDamage(chain_actor, this->damage);

@@ -1,7 +1,7 @@
 #include "pch.h"
 
-static const int MAX_ROOM_MONSTERS = 3;
-static const int MAX_ROOM_ITEMS = 4;
+static const int MAX_ROOM_MONSTERS = 4;
+static const int MAX_ROOM_ITEMS = 3;
 
 Map::Map()
 {
@@ -59,16 +59,16 @@ bool Map::isExplored(int x, int y) const
 void Map::addMonster(int x, int y)
 {
 	TCODRandom *rng = TCODRandom::getInstance();
-	if (rng->getInt(0, 100) < 80) {
+	if (rng->getInt(0, 100) < 50) {
 		Actor *orc = new Actor(x, y, 'o', "orc", TCODColor::desaturatedGreen);
-		orc->destructible = new MonsterDestructible(10, 0, "dead orc");
+		orc->destructible = new MonsterDestructible(10, 0, "dead orc", 15);
 		orc->attacker = new Attacker(5);
 		orc->ai = new MonsterAi();
 		engine.actors.push(orc);
 	} 
 	else {
 		Actor *troll = new Actor(x, y, 'T', "troll", TCODColor::darkerGreen);
-		troll->destructible = new MonsterDestructible(16, 1, "troll carcass");
+		troll->destructible = new MonsterDestructible(16, 1, "troll carcass", 17);
 		troll->attacker = new Attacker(4);
 		troll->ai = new MonsterAi();
 		engine.actors.push(troll);
@@ -84,40 +84,40 @@ void Map::addItem(int x, int y)
 {
 	TCODRandom *rng = TCODRandom::getInstance();
 	int dice = rng->getInt(0, 100);
-	if (dice < 20) {
+	if (dice < 40) {
 		//create a health potion
-		Actor *healthPotion = new Actor(x, y, '!', "health potion", TCODColor::cyan);
+		Actor *healthPotion = new Actor(x, y, '#', "scroll of heal", TCODColor::cyan);
 		healthPotion->set_block(false);
 		healthPotion->pickable = new Healer(4);
 		engine.actors.push(healthPotion);
 	}
-	else if (dice < 20 + 20) {
+	else if (dice < 40 + 15) {
 		//create a scroll with lightning bolt
 		Actor *scrollOfLightningBolt = new Actor(x, y, '#', "scroll of lightning bolt",
-			TCODColor::lightBlue);
+			TCODColor::lighterBlue);
 		scrollOfLightningBolt->set_block(false);
 		scrollOfLightningBolt->pickable = new LightningBolt(5, 20);
 		engine.actors.push(scrollOfLightningBolt);
 	}
-	else if (dice < 20 + 20 + 20) {
+	else if (dice < 40 + 15 + 15) {
 		//create a scroll with fireball
 		Actor *scrollOfFireball = new Actor(x, y, '#', "scroll of fireball",
 			TCODColor::lightYellow);
 		scrollOfFireball->set_block(false);
-		scrollOfFireball->pickable = new Fireball(3, 12);
+		scrollOfFireball->pickable = new Fireball(3, 15);
 		engine.actors.push(scrollOfFireball);
 	}
-	else if (dice < 20 + 20 + 20 + 20) {
+	else if (dice < 40 + 15 + 15 + 15) {
 		//create a scroll with confusion
 		Actor *scrollOfConfusion = new Actor(x, y, '#', "scroll of confusion",
-			TCODColor::lightCyan);
+			TCODColor::lightGrey);
 		scrollOfConfusion->set_block(false);
-		scrollOfConfusion->pickable = new Confuser(5, 8);
+		scrollOfConfusion->pickable = new Confuser(7, 8);
 		engine.actors.push(scrollOfConfusion);
 	}
 	else {
 		Actor *scrollOfLightningChain = new Actor(x, y, '#', "scroll of lightning chain",
-			TCODColor::darkBlue);
+			TCODColor::darkerBlue);
 		scrollOfLightningChain->set_block(false);
 		scrollOfLightningChain->pickable = new LightningChain(7, 15);
 		engine.actors.push(scrollOfLightningChain);
@@ -229,8 +229,9 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
 			nbItems--;
 		}
 	}
-
-	
+	//set stairs position
+	engine.stairs->set_x_pos((x1 + x2) / 2);
+	engine.stairs->set_y_pos((y1 + y2) / 2);
 }
 
 

@@ -12,11 +12,17 @@ protected:
 
 class PlayerAi : public Ai {
 public:
+	PlayerAi();
 	void update(Actor *owner) override;
 	void handleActionKey(Actor *owner, int ascii);
 	void load(TCODZip &zip);
 	void save(TCODZip &zip);
+	int getNextLevelXp();
+
+	//accessors
+	int get_xp_level() const { return this->xpLevel; }
 protected:
+	int xpLevel;
 	enum INVENTORY_STATUS {OPEN, CLOSE} inventory_status = CLOSE;
 	bool moveOrAttack(Actor *owner, int targetx, int targety);
 	Actor *choseFromInventory(Actor *owner);

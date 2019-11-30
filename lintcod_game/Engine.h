@@ -13,12 +13,14 @@ private:
 	TCOD_key_t lastKey;
 	TCOD_mouse_t mouse;
 	int fovRadius;
+	int level;
 public:
 	enum GameStatus {
 		STARTUP, IDLE, NEW_TURN, VICTORY, DEFEAT
 	} gameStatus;
 	Gui *gui;
 	Actor *player;
+	Actor *stairs;
 	Map *map;
 	TCODList<Actor *> actors;
 	Engine();
@@ -34,6 +36,7 @@ public:
 	void load();
 	void save();
 	void term();
+	void nextLevel();
 
 	//accessors
 	TCOD_key_t get_last_key() const { return this->lastKey; }
@@ -46,6 +49,8 @@ public:
 	void set_screen_height(int screenHeight) { this->screenHeight = screenHeight; }
 	int get_fov_radius() const { return this->fovRadius; }
 	void set_fov_radius(int fovRadius) { this->fovRadius = fovRadius; }
+	int get_level() const { return this->level; }
+	void set_level(int level) { this->level = level; }
 };
 
 extern Engine engine;

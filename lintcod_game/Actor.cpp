@@ -10,7 +10,7 @@ Actor::Actor()
 }
 
 Actor::Actor(int x, int y, int ch,const char * name, const TCODColor & col): x(x), y(y), ch(ch), name(name), col(col),
-	blocks(true), attacker(nullptr), destructible(nullptr), ai(nullptr), pickable(nullptr), container(nullptr)
+	blocks(true), attacker(nullptr), destructible(nullptr), ai(nullptr), pickable(nullptr), container(nullptr), fovOnly(true)
 {
 }
 
